@@ -7,24 +7,28 @@ import AppbarAction from './AppbarAction';
 import AppbarBackAction from './AppbarBackAction';
 import Surface from '../Surface';
 import { withTheme } from '../../core/theming';
-import { black, white } from '../../styles/themes/v2/colors';
-import overlay from '../../styles/overlay';
 import type { Theme } from '../../types';
+import { AppbarModes, getAppbarColor, renderAppbarContent } from './utils';
 
-type Props = Partial<React.ComponentPropsWithRef<typeof View>> & {
-  /**
-   * Whether the background color is a dark color. A dark appbar will render light text and vice-versa.
-   */
-  dark?: boolean;
-  /**
-   * Content of the `Appbar`.
-   */
-  children: React.ReactNode;
-  /**
-   * @optional
-   */
-  theme: Theme;
-  style?: StyleProp<ViewStyle>;
+type Props = Partial<React.ComponentPropsWithRef<typeof View>> &
+  MD3Props & {
+    /**
+     * Whether the background color is a dark color. A dark appbar will render light text and vice-versa.
+     */
+    dark?: boolean;
+    /**
+     * Content of the `Appbar`.
+     */
+    children: React.ReactNode;
+    /**
+     * @optional
+     */
+    theme: Theme;
+    style?: StyleProp<ViewStyle>;
+  };
+
+type MD3Props = {
+  mode?: AppbarModes;
 };
 
 export const DEFAULT_APPBAR_HEIGHT = 56;
@@ -74,21 +78,25 @@ export const DEFAULT_APPBAR_HEIGHT = 56;
  * });
  * ```
  */
-const Appbar = ({ children, dark, style, theme, ...rest }: Props) => {
-  const { colors, dark: isDarkTheme, mode } = theme;
+const Appbar = ({
+  children,
+  dark,
+  style,
+  theme,
+  mode = 'small',
+  ...rest
+}: Props) => {
+  const { isV3 } = theme;
   const {
     backgroundColor: customBackground,
-    elevation = 4,
+    elevation = isV3 ? 0 : 4,
     ...restStyle
   }: ViewStyle = StyleSheet.flatten(style) || {};
 
   let isDark: boolean;
 
-  const backgroundColor = customBackground
-    ? customBackground
-    : isDarkTheme && mode === 'adaptive'
-    ? overlay(elevation, colors?.surface)
-    : colors?.primary;
+  const backgroundColor = getAppbarColor(theme, elevation, customBackground);
+
   if (typeof dark === 'boolean') {
     isDark = dark;
   } else {
@@ -121,48 +129,85 @@ const Appbar = ({ children, dark, style, theme, ...rest }: Props) => {
     });
 
     shouldCenterContent =
-      hasAppbarContent && leftItemsCount < 2 && rightItemsCount < 2;
-    shouldAddLeftSpacing = shouldCenterContent && leftItemsCount === 0;
-    shouldAddRightSpacing = shouldCenterContent && rightItemsCount === 0;
+      !isV3 && hasAppbarContent && leftItemsCount < 2 && rightItemsCount < 2;
+    shouldAddLeftSpacing = !isV3 && shouldCenterContent && leftItemsCount === 0;
+    shouldAddRightSpacing =
+      !isV3 && shouldCenterContent && rightItemsCount === 0;
   }
+
+  const isSmallMode = mode === 'small';
+  const isMediumMode = mode === 'medium';
+  const isLargeMode = mode === 'large';
+  const isCenterAlignedMode = mode === 'center-aligned';
+
+  const filterAppbarActions = React.useCallback(
+    (isLeading = false) =>
+      React.Children.toArray(children).filter((child) =>
+        // @ts-expect-error: TypeScript complains about the type of type but it doesn't matter
+        isLeading ? child.props.isLeadingIcon : !child.props.isLeadingIcon
+      ),
+    [children]
+  );
+
   return (
     <Surface
       style={[{ backgroundColor }, styles.appbar, { elevation }, restStyle]}
       {...rest}
     >
       {shouldAddLeftSpacing ? <View style={styles.spacing} /> : null}
-      {React.Children.toArray(children)
-        .filter((child) => child != null && typeof child !== 'boolean')
-        .map((child, i) => {
-          if (
-            !React.isValidElement(child) ||
-            ![AppbarContent, AppbarAction, AppbarBackAction].includes(
-              // @ts-expect-error: TypeScript complains about the type of type but it doesn't matter
-              child.type
-            )
-          ) {
-            return child;
-          }
-
-          const props: { color?: string; style?: StyleProp<ViewStyle> } = {
-            color:
-              typeof child.props.color !== 'undefined'
-                ? child.props.color
-                : isDark
-                ? white
-                : black,
-          };
-
-          if (child.type === AppbarContent) {
-            props.style = [
-              // Since content is not first item, add extra left margin
-              i !== 0 && { marginLeft: 8 },
-              shouldCenterContent && { alignItems: 'center' },
-              child.props.style,
-            ];
-          }
-          return React.cloneElement(child, props);
+      {isSmallMode &&
+        renderAppbarContent({
+          children,
+          isDark,
+          shouldCenterContent,
+          theme,
         })}
+      {(isMediumMode || isLargeMode || isCenterAlignedMode) && (
+        <View
+          style={[
+            styles.columnContainer,
+            isCenterAlignedMode && styles.centerAlignedContainer,
+          ]}
+        >
+          {/* Appbar top row with controls */}
+          <View style={styles.controlsRow}>
+            {/* Left side of row container, can contain AppbarBackAction or AppbarAction if it's leading icon  */}
+            {renderAppbarContent({
+              children,
+              isDark,
+              theme,
+              renderOnly: [AppbarBackAction],
+              mode,
+            })}
+            {renderAppbarContent({
+              children: filterAppbarActions(true),
+              isDark,
+              theme,
+              renderOnly: [AppbarAction],
+              mode,
+            })}
+            {/* Right side of row container, can contain other AppbarAction if they are not leading icons */}
+            <View style={styles.rightActionControls}>
+              {renderAppbarContent({
+                children: filterAppbarActions(false),
+                isDark,
+                theme,
+                renderOnly: [AppbarAction],
+                mode,
+              })}
+            </View>
+          </View>
+          {/* Middle of the row, can contain only AppbarContent */}
+          {renderAppbarContent({
+            children,
+            isDark,
+            theme,
+            shouldCenterContent: isCenterAlignedMode,
+            renderOnly: [AppbarContent],
+            mode,
+          })}
+        </View>
+      )}
       {shouldAddRightSpacing ? <View style={styles.spacing} /> : null}
     </Surface>
   );
@@ -178,6 +223,24 @@ const styles = StyleSheet.create({
   },
   spacing: {
     width: 48,
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rightActionControls: {
+    flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  columnContainer: {
+    flexDirection: 'column',
+    flex: 1,
+    paddingTop: 8,
+  },
+  centerAlignedContainer: {
+    paddingTop: 0,
   },
 });
 

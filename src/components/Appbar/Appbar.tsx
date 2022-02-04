@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
     width: 48,
   },
   controlsRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

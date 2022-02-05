@@ -8,7 +8,13 @@ import AppbarBackAction from './AppbarBackAction';
 import Surface from '../Surface';
 import { withTheme } from '../../core/theming';
 import type { Theme } from '../../types';
-import { AppbarModes, getAppbarColor, renderAppbarContent } from './utils';
+import {
+  getAppbarColor,
+  renderAppbarContent,
+  DEFAULT_APPBAR_HEIGHT,
+  modeAppbarHeight,
+  AppbarModes,
+} from './utils';
 
 type Props = Partial<React.ComponentPropsWithRef<typeof View>> &
   MD3Props & {
@@ -28,10 +34,15 @@ type Props = Partial<React.ComponentPropsWithRef<typeof View>> &
   };
 
 type MD3Props = {
+  /**
+   * Mode of the Appbar.
+   * - `small` - Appbar with default height (56).
+   * - `medium` - Appbar with medium height (112).
+   * - `large` - Appbar with large height (152).
+   * - `center-aligned` - Appbar with default height and center-aligned title.
+   */
   mode?: AppbarModes;
 };
-
-export const DEFAULT_APPBAR_HEIGHT = 56;
 
 /**
  * A component to display action items in a bar. It can be placed at the top or bottom.
@@ -135,38 +146,45 @@ const Appbar = ({
       !isV3 && shouldCenterContent && rightItemsCount === 0;
   }
 
-  const isSmallMode = mode === 'small';
-  const isMediumMode = mode === 'medium';
-  const isLargeMode = mode === 'large';
-  const isCenterAlignedMode = mode === 'center-aligned';
+  const isMode = (modeToCompare: AppbarModes) => {
+    return isV3 && mode === modeToCompare;
+  };
 
   const filterAppbarActions = React.useCallback(
     (isLeading = false) =>
       React.Children.toArray(children).filter((child) =>
         // @ts-expect-error: TypeScript complains about the type of type but it doesn't matter
-        isLeading ? child.props.isLeadingIcon : !child.props.isLeadingIcon
+        isLeading ? child.props.isLeading : !child.props.isLeading
       ),
     [children]
   );
 
   return (
     <Surface
-      style={[{ backgroundColor }, styles.appbar, { elevation }, restStyle]}
+      style={[
+        { backgroundColor },
+        styles.appbar,
+        {
+          height: isV3 ? modeAppbarHeight[mode] : DEFAULT_APPBAR_HEIGHT,
+          elevation,
+        },
+        restStyle,
+      ]}
       {...rest}
     >
       {shouldAddLeftSpacing ? <View style={styles.spacing} /> : null}
-      {isSmallMode &&
+      {(!isV3 || isMode('small')) &&
         renderAppbarContent({
           children,
           isDark,
           shouldCenterContent,
           theme,
         })}
-      {(isMediumMode || isLargeMode || isCenterAlignedMode) && (
+      {(isMode('medium') || isMode('large') || isMode('center-aligned')) && (
         <View
           style={[
             styles.columnContainer,
-            isCenterAlignedMode && styles.centerAlignedContainer,
+            isMode('center-aligned') && styles.centerAlignedContainer,
           ]}
         >
           {/* Appbar top row with controls */}
@@ -202,7 +220,7 @@ const Appbar = ({
             children,
             isDark,
             theme,
-            shouldCenterContent: isCenterAlignedMode,
+            shouldCenterContent: isMode('center-aligned'),
             renderOnly: [AppbarContent],
             mode,
           })}
@@ -215,7 +233,6 @@ const Appbar = ({
 
 const styles = StyleSheet.create({
   appbar: {
-    height: DEFAULT_APPBAR_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 4,

@@ -177,8 +177,8 @@ const Appbar = ({
         renderAppbarContent({
           children,
           isDark,
+          isV3,
           shouldCenterContent,
-          theme,
         })}
       {(isMode('medium') || isMode('large') || isMode('center-aligned')) && (
         <View
@@ -193,14 +193,14 @@ const Appbar = ({
             {renderAppbarContent({
               children,
               isDark,
-              theme,
+              isV3,
               renderOnly: [AppbarBackAction],
               mode,
             })}
             {renderAppbarContent({
               children: filterAppbarActions(true),
               isDark,
-              theme,
+              isV3,
               renderOnly: [AppbarAction],
               mode,
             })}
@@ -209,7 +209,7 @@ const Appbar = ({
               {renderAppbarContent({
                 children: filterAppbarActions(false),
                 isDark,
-                theme,
+                isV3,
                 renderOnly: [AppbarAction],
                 mode,
               })}
@@ -219,7 +219,7 @@ const Appbar = ({
           {renderAppbarContent({
             children,
             isDark,
-            theme,
+            isV3,
             shouldCenterContent: isMode('center-aligned'),
             renderOnly: [AppbarContent],
             mode,

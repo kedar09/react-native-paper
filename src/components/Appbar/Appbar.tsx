@@ -16,25 +16,18 @@ import {
   AppbarModes,
 } from './utils';
 
-type Props = Partial<React.ComponentPropsWithRef<typeof View>> &
-  MD3Props & {
-    /**
-     * Whether the background color is a dark color. A dark appbar will render light text and vice-versa.
-     */
-    dark?: boolean;
-    /**
-     * Content of the `Appbar`.
-     */
-    children: React.ReactNode;
-    /**
-     * @optional
-     */
-    theme: Theme;
-    style?: StyleProp<ViewStyle>;
-  };
-
-type MD3Props = {
+type Props = Partial<React.ComponentPropsWithRef<typeof View>> & {
   /**
+   * Whether the background color is a dark color. A dark appbar will render light text and vice-versa.
+   */
+  dark?: boolean;
+  /**
+   * Content of the `Appbar`.
+   */
+  children: React.ReactNode;
+  /**
+   * `Available in v3.x`
+   *
    * Mode of the Appbar.
    * - `small` - Appbar with default height (56).
    * - `medium` - Appbar with medium height (112).
@@ -42,6 +35,11 @@ type MD3Props = {
    * - `center-aligned` - Appbar with default height and center-aligned title.
    */
   mode?: AppbarModes;
+  /**
+   * @optional
+   */
+  theme: Theme;
+  style?: StyleProp<ViewStyle>;
 };
 
 /**

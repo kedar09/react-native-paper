@@ -35,7 +35,10 @@ const DarkTheme: ThemeBase = {
     onTertiaryContainer: palette.tertiary90,
     onSurface: palette.neutral90,
     onSurfaceVariant: palette.neutralVariant80,
-    onSurfaceDisabled: palette.neutral90,
+    onSurfaceDisabled: color(palette.neutral90)
+      .alpha(tokens.md.ref.opacity.level4)
+      .rgb()
+      .string(),
     onError: palette.error20,
     onErrorContainer: palette.error80,
     onBackground: palette.neutral90,

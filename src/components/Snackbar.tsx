@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import Button from './Button';
+import Button from './Button/Button';
 import Surface from './Surface';
 import Text from './Typography/Text';
 import { withTheme } from '../core/theming';

@@ -231,8 +231,9 @@ const Chip = ({
             (isOutlined ? styles.md3OutlineContainer : styles.md3FlatContainer),
           {
             elevation: Platform.OS === 'android' ? elevation : 0,
-            backgroundColor:
-              selected && !isV3 ? selectedBackgroundColor : backgroundColor,
+            backgroundColor: selected
+              ? selectedBackgroundColor
+              : backgroundColor,
             borderColor,
             borderRadius,
           },

@@ -26,7 +26,7 @@ type Props = Partial<React.ComponentPropsWithRef<typeof View>> & {
    */
   children: React.ReactNode;
   /**
-   * `Available in v3.x`
+   * @supported Available in v3.x with theme version 3
    *
    * Mode of the Appbar.
    * - `small` - Appbar with default height (56).
@@ -34,7 +34,7 @@ type Props = Partial<React.ComponentPropsWithRef<typeof View>> & {
    * - `large` - Appbar with large height (152).
    * - `center-aligned` - Appbar with default height and center-aligned title.
    */
-  mode?: AppbarModes;
+  mode?: 'small' | 'medium' | 'large' | 'center-aligned';
   /**
    * @optional
    */
@@ -49,10 +49,6 @@ type Props = Partial<React.ComponentPropsWithRef<typeof View>> & {
  *
  * By default Appbar uses primary color as a background, in dark theme with `adaptive` mode it will use surface colour instead.
  * See [Dark Theme](https://callstack.github.io/react-native-paper/theming.html#dark-theme) for more informations
- *
- * <div class="screenshots">
- *   <img class="medium" src="screenshots/appbar.png" />
- * </div>
  *
  * ## Usage
  * ```js
